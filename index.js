@@ -1,8 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const bookRouter = require("./book-router.js");
+const path = require('path');
 const app = express();
-// app.use(bodyParser.json());
+app.use(bodyParser.json());
+const bookRouter = require("./book-router.js");
 
 app.get("/abc?", function (req, res) {
   res.send("Hello World");
@@ -48,24 +49,67 @@ app.delete("/", function (req, res) {
 // modularized routes
 app.use("/books", bookRouter);
 
-// app.use('/books',bookRouter);
 // using query string
-// app.get('/input', function(res, req) {
-//     req.send(req.query);
-// })
+app.get('/input', function(req, res) {
+    res.send(req.query);
+})
 
-
-// user input
-// app.get("/input", function(req, res) {
-//     res.send({
-//         query: req.query,
-//         appName: req.get("app-name")
-//     })
-// })
+// user input using Headers
+app.get("/input", function(req, res) {
+    res.send({
+        query: req.query,
+        appName: req.get("app-name")
+    })
+});
 
 app.post("/input1", function (req, res) {
-  res.send(req.body);
+  // res.send(req.body);
+  const { name } = req.body;
+  res.send(`Hello, ${name}`);
 });
+
+
+app.get("/close-conn", function (req, res){
+  res.write("Connection Closed")
+  res.end();
+})
+
+app.get("/close-conn-json", function (req, res){
+ res.json({name: "Connection Closed"})
+})
+
+app.get("/header", function (req, res){
+  res.set('X-CUSTOM-HEADER', 'ravi'); // space is not allowed
+ res.json({name: "Connection Closed"})
+})
+
+app.get("/status", function (req, res){
+  res.status(404).end();
+})
+
+app.get("/login", function (req, res){
+  res.redirect("/close-conn-json"); // 302 status code 
+})
+
+app.get("/send-file", function(req, res){
+  res.sendFile(path.resolve("./index.html"))
+})
+
+app.get("/send-attachment", function(req, res){
+  res.attachment(path.resolve("./index.html"))
+  res.end();
+})
+
+// res.cookies is not a function showing error
+app.get("/set-cookie", function (res, req){
+  res.cookies('demo', 'demo-cookie');
+  res.end(); 
+})
+
+app.get("/clear-cookie", function (res, req){
+  res.clearCookie('demo', 'demo-cookie');
+  res.end(); 
+})
 
 const port = process.env.PORT || 8000;
 app.listen(port, function () {
